@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>蔔蔔記帳</title>
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3616/3616231.png">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMWExYTFhIi8+PHBhdGggZD0iTTMwLDUwIEMzMCwzMCA3MCwzMCA3MCw1MCBMNzAsNzAgTDMwLDcwIFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzM0OThkYiIgc3Ryb2tlLXdpZHRoPSI0Ii8+PHBhdGggZD0iTTMwLDUwIEwyNSwzNSBMNDAsNDUgTTcwLDUwIEw3NSwzNSBMNjAsNDUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzM0OThkYiIgc3Ryb2tlLXdpZHRoPSI0Ii8+PC9zdmc+">
     <style>
         :root { --bg: #1a1a1a; --card-bg: #2d2d2d; --text: #e0e0e0; --input-bg: #3d3d3d; --accent: #3498db; --success: #2ecc71; --border: #444; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; justify-content: center; }
@@ -17,7 +17,6 @@
         .row { display: flex; gap: 10px; }
         .row > .form-group { flex: 1; }
         .btn { width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        .btn:active { transform: scale(0.97); opacity: 0.8; }
         #status { text-align: center; margin-top: 15px; font-size: 15px; color: var(--success); display: none; font-weight: bold; padding: 10px; border-radius: 10px; background: rgba(46, 204, 113, 0.1); }
         .dynamic-section { display: none; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent); }
         hr { border: 0; border-top: 1px solid var(--border); margin: 20px 0; }
@@ -66,8 +65,8 @@
                     <option value="元大台灣50 (0050)">元大台灣50 (0050)</option>
                     <option value="富邦台50 (006208)">富邦台50 (006208)</option>
                     <option value="台積電 (2330)">台積電 (2330)</option>
-                    <option value="AVGO">AVGO (博通)</option>
-                    <option value="GOOG">GOOG (Google)</option>
+                    <option value="AVGO">AVGO</option>
+                    <option value="GOOG">GOOG</option>
                 </select>
             </div>
             <div class="row">
@@ -88,7 +87,7 @@
                 </select>
             </div>
             <div id="new-target-box" class="form-group" style="display:none;">
-                <input type="text" id="customTarget" placeholder="輸入新對象姓名" oninput="syncAutoNote()">
+                <input type="text" id="customTarget" placeholder="新對象姓名" oninput="syncAutoNote()">
             </div>
             <div class="form-group">
                 <label>性質</label>
@@ -124,11 +123,11 @@
             <input type="hidden" id="finalAccount" name="entry.2091089311">
         </div>
 
-        <div class="form-group"><label>自動備註</label><input type="text" id="note" name="entry.1884550532" placeholder="細節描述"></div>
-        <div class="form-group"><label>專案 (選填)</label><input type="text" id="project" name="entry.1046613336" placeholder="專案名稱"></div>
+        <div class="form-group"><label>自動備註</label><input type="text" id="note" name="entry.1884550532"></div>
+        <div class="form-group"><label>專案 (選填)</label><input type="text" id="project" name="entry.1046613336"></div>
 
         <button type="submit" class="btn">確認送出</button>
-        <div id="status">🚀 資料已傳送！</div>
+        <div id="status">🚀 已上傳試算表</div>
     </form>
 </div>
 
@@ -145,12 +144,10 @@
     function toggleSections() {
         const type = document.getElementById('type').value;
         document.querySelectorAll('.dynamic-section').forEach(s => s.style.display = 'none');
-        
         if (type === '一般支出' || type === '收入') {
             document.getElementById('section-normal').style.display = 'block';
-            // 如果是收入，隱藏主類別
             document.getElementById('mainCatGroup').style.display = (type === '收入') ? 'none' : 'block';
-            document.getElementById('subCatLabel').innerText = (type === '收入') ? "收入類別" : "子類別";
+            document.getElementById('subCatLabel').innerText = (type === '收入') ? "收入來源" : "子類別";
         }
         if (type === '股票交易') document.getElementById('section-stock').style.display = 'block';
         if (type === '借貸往來') document.getElementById('section-loan').style.display = 'block';
@@ -190,7 +187,7 @@
         const type = document.getElementById('type').value;
         const cat1 = document.getElementById('cat1'); cat1.innerHTML = '';
         const categories = dataConfig[type] || {"項目": ["其它"]};
-        Object.keys(categories).forEach(c => { let opt = new Option(c, c); cat1.add(opt); });
+        Object.keys(categories).forEach(c => { cat1.add(new Option(c, c)); });
         updateSubCategories();
     }
 
@@ -199,13 +196,13 @@
         const c1 = document.getElementById('cat1').value;
         const cat2 = document.getElementById('cat2'); cat2.innerHTML = '';
         const subs = (dataConfig[type] && dataConfig[type][c1]) ? dataConfig[type][c1] : ["N/A"];
-        subs.forEach(s => { let opt = new Option(s, s); cat2.add(opt); });
+        subs.forEach(s => { cat2.add(new Option(s, s)); });
     }
 
     function updateAccountTypes() {
         const user = document.getElementById('user').value;
         const accType = document.getElementById('accType'); accType.innerHTML = '';
-        Object.keys(accountData[user]).forEach(t => { let opt = new Option(t, t); accType.add(opt); });
+        Object.keys(accountData[user]).forEach(t => { accType.add(new Option(t, t)); });
         updateAccountList();
     }
 
@@ -213,14 +210,14 @@
         const user = document.getElementById('user').value;
         const type = document.getElementById('accType').value;
         const accList = document.getElementById('accList'); accList.innerHTML = '';
-        accountData[user][type].forEach(name => { let opt = new Option(name, name); accList.add(opt); });
+        accountData[user][type].forEach(name => { accList.add(new Option(name, name)); });
         syncAccount();
     }
 
     function updateToAccTypes() {
         const user = document.getElementById('toUser').value;
         const accType = document.getElementById('toAccType'); accType.innerHTML = '';
-        Object.keys(accountData[user]).forEach(t => { let opt = new Option(t, t); accType.add(opt); });
+        Object.keys(accountData[user]).forEach(t => { accType.add(new Option(t, t)); });
         updateToAccountList();
     }
 
@@ -228,7 +225,7 @@
         const user = document.getElementById('toUser').value;
         const type = document.getElementById('toAccType').value;
         const accList = document.getElementById('toAccList'); accList.innerHTML = '';
-        accountData[user][type].forEach(name => { let opt = new Option(name, name); accList.add(opt); });
+        accountData[user][type].forEach(name => { accList.add(new Option(name, name)); });
         syncAutoNote();
     }
 
@@ -252,7 +249,6 @@
 
     const toU = document.getElementById('toUser');
     ["彬", "妍"].forEach(u => { toU.add(new Option(u, u)); });
-
     toggleSections(); updateAccountTypes(); updateToAccTypes();
 </script>
 </body>
