@@ -11,11 +11,9 @@
         h2 { text-align: center; color: var(--primary); margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 14px; }
-        select, input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; outline: none; }
-        select:focus, input:focus { border-color: var(--accent); }
+        select, input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; outline: none; background-color: #fff; }
         .btn { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
-        #status { text-align: center; margin-top: 15px; font-size: 14px; color: #27ae60; display: none; }
+        #status { text-align: center; margin-top: 15px; font-size: 14px; color: #27ae60; display: none; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -42,29 +40,42 @@
 
         <div class="form-group">
             <label>簡述</label>
-            <input type="text" id="note" name="entry.1884550532" placeholder="備註說明">
+            <input type="text" id="note" name="entry.1884550532" placeholder="買了什麼？">
         </div>
 
         <div class="form-group">
-            <label>大類別</label>
-            <select id="cat1" name="entry.330174012" onchange="updateSubCategories()">
-                </select>
+            <label>類別</label>
+            <select id="cat1" name="entry.330174012" onchange="updateSubCategories()"></select>
         </div>
 
         <div class="form-group">
             <label>子類別</label>
-            <select id="cat2" name="entry.634254140">
-                </select>
+            <select id="cat2" name="entry.634254140"></select>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+        <div class="form-group">
+            <label>持有人</label>
+            <select id="user" onchange="updateAccountTypes()">
+                <option value="彬">彬</option>
+                <option value="妍">妍</option>
+            </select>
         </div>
 
         <div class="form-group">
-            <label>付款帳戶</label>
-            <select id="account" name="entry.2091089311">
-                </select>
+            <label>帳戶類型</label>
+            <select id="accType" onchange="updateAccountList()"></select>
+        </div>
+
+        <div class="form-group">
+            <label>具體帳戶</label>
+            <input type="hidden" id="finalAccount" name="entry.2091089311">
+            <select id="accList" onchange="syncAccount()"></select>
         </div>
 
         <button type="submit" class="btn">確認送出</button>
-        <div id="status">✅ 記錄成功！</div>
+        <div id="status">✅ 傳送成功！</div>
     </form>
 </div>
 
@@ -84,20 +95,20 @@
         }
     };
 
-    const accounts = [
-        "彬 - 現金 - 錢包", "彬 - 銀行 - 中國信託", "彬 - 銀行 - 玉山銀行", "彬 - 銀行 - 台北富邦", "彬 - 銀行 - 國泰世華", "彬 - 銀行 - 中華郵政", "彬 - 現金 - 日幣錢包", "彬 - 信用卡 - 玉山Unicard", "彬 - 信用卡 - 國泰世華Cube", "彬 - 信用卡 - 永豐Sports", "彬 - 信用卡 - 富邦好市多多聯名卡", "彬 - 銀行 - 永豐台幣", "彬 - 銀行 - 永豐美金", "彬 - 儲值卡 - UNICARD CASH", "彬 - 儲值卡 - SUICA", "彬 - 儲值卡 - 學生證", "彬 - 儲值卡 - 威秀影城儲值金",
-        "妍 - 信用卡 - 永豐DAWHO", "妍 - 現金 - 錢包", "妍 - 銀行 - 中國信託", "妍 - 銀行 - 中華郵政", "妍 - 銀行 - 永豐台幣", "妍 - 銀行 - 永豐紐幣", "妍 - 銀行 - 永豐日幣", "妍 - 現金 - 紐幣錢包", "妍 - 銀行 - 台新銀行", "妍 - 儲值卡 - LINE PAY MONEY", "妍 - 儲值卡 - 大戶悠遊卡", "妍 - 儲值卡 - 學生證", "妍 - 儲值卡 - SUICA"
-    ];
-
-    function init() {
-        const accSelect = document.getElementById('account');
-        accounts.forEach(acc => {
-            let opt = document.createElement('option');
-            opt.value = acc; opt.text = acc;
-            accSelect.appendChild(opt);
-        });
-        updateCategories();
-    }
+    const accountData = {
+        "彬": {
+            "現金": ["錢包", "日幣錢包"],
+            "銀行": ["中國信託", "玉山銀行", "台北富邦", "國泰世華", "中華郵政", "永豐台幣", "永豐美金"],
+            "信用卡": ["玉山Unicard", "國泰世華Cube", "永豐Sports", "富邦好市多多聯名卡"],
+            "儲值卡": ["UNICARD CASH", "SUICA", "學生證", "威秀影城儲值金"]
+        },
+        "妍": {
+            "現金": ["錢包", "紐幣錢包"],
+            "銀行": ["中國信託", "中華郵政", "永豐台幣", "永豐紐幣", "永豐日幣", "台新銀行"],
+            "信用卡": ["永豐DAWHO"],
+            "儲值卡": ["LINE PAY MONEY", "大戶悠遊卡", "學生證", "SUICA"]
+        }
+    };
 
     function updateCategories() {
         const type = document.getElementById('type').value;
@@ -105,8 +116,7 @@
         cat1.innerHTML = '';
         const categories = dataConfig[type] || {"其它": ["其它"]};
         Object.keys(categories).forEach(c => {
-            let opt = document.createElement('option');
-            opt.value = c; opt.text = c;
+            let opt = document.createElement('option'); opt.value = c; opt.text = c;
             cat1.appendChild(opt);
         });
         updateSubCategories();
@@ -119,31 +129,67 @@
         cat2.innerHTML = '';
         const subs = (dataConfig[type] && dataConfig[type][c1]) ? dataConfig[type][c1] : ["其它"];
         subs.forEach(s => {
-            let opt = document.createElement('option');
-            opt.value = s; opt.text = s;
+            let opt = document.createElement('option'); opt.value = s; opt.text = s;
             cat2.appendChild(opt);
         });
     }
 
+    function updateAccountTypes() {
+        const user = document.getElementById('user').value;
+        const accType = document.getElementById('accType');
+        accType.innerHTML = '';
+        Object.keys(accountData[user]).forEach(t => {
+            let opt = document.createElement('option'); opt.value = t; opt.text = t;
+            accType.appendChild(opt);
+        });
+        updateAccountList();
+    }
+
+    function updateAccountList() {
+        const user = document.getElementById('user').value;
+        const type = document.getElementById('accType').value;
+        const accList = document.getElementById('accList');
+        accList.innerHTML = '';
+        accountData[user][type].forEach(name => {
+            let opt = document.createElement('option'); opt.value = name; opt.text = name;
+            accList.appendChild(opt);
+        });
+        syncAccount();
+    }
+
+    function syncAccount() {
+        const user = document.getElementById('user').value;
+        const type = document.getElementById('accType').value;
+        const name = document.getElementById('accList').value;
+        // 組合出跟試算表一模一樣的名稱格式
+        document.getElementById('finalAccount').value = `${user} - ${type} - ${name}`;
+    }
+
     document.getElementById('payForm').onsubmit = function(e) {
         e.preventDefault();
+        const status = document.getElementById('status');
         const form = e.target;
         const url = "https://docs.google.com/forms/d/e/1FAIpQLSfDgBqRMK5Lm82WAYjIAcSqUxfsDtNN8Ub2W9kUCJc8LrJmQQ/formResponse";
-        const formData = new FormData(form);
         
+        // 確保發送前帳戶字串是正確的
+        syncAccount();
+
         fetch(url, {
             method: 'POST',
             mode: 'no-cors',
-            body: formData
+            body: new FormData(form)
         }).then(() => {
-            document.getElementById('status').style.display = 'block';
+            status.style.display = 'block';
             form.reset();
             updateCategories();
-            setTimeout(() => { document.getElementById('status').style.display = 'none'; }, 2000);
-        });
+            updateAccountTypes();
+            setTimeout(() => { status.style.display = 'none'; }, 2500);
+        }).catch(err => alert("傳送失敗，請檢查網路！"));
     };
 
-    init();
+    // 初始化
+    updateCategories();
+    updateAccountTypes();
 </script>
 </body>
 </html>
