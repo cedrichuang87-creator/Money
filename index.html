@@ -40,8 +40,36 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>金額</label>
+                <label>總金額</label>
                 <input type="number" id="amount" name="entry.313758906" placeholder="0" required inputmode="decimal">
+            </div>
+        </div>
+
+        <div id="section-stock" class="dynamic-section">
+            <div class="form-group">
+                <label>選擇股票 (台股自動補 TPE:)</label>
+                <select id="stockName" onchange="checkNewStock()">
+                    <optgroup label="台股">
+                        <option value="2330">台積電 (2330)</option>
+                        <option value="0050">元大台灣50 (0050)</option>
+                        <option value="006208">富邦台50 (006208)</option>
+                    </optgroup>
+                    <optgroup label="美股">
+                        <option value="AVGO">AVGO (Broadcom)</option>
+                        <option value="GOOG">GOOG (Alphabet)</option>
+                        <option value="NVDA">NVDA (NVIDIA)</option>
+                        <option value="UUUU">UUUU (Energy Fuels)</option>
+                        <option value="VOO">VOO (Vanguard S&P 500)</option>
+                    </optgroup>
+                    <option value="CUSTOM_STOCK">--- 手動輸入代碼... ---</option>
+                </select>
+            </div>
+            <div id="new-stock-box" class="form-group" style="display:none;">
+                <input type="text" id="customStock" placeholder="台股輸入 2330 / 美股輸入 NVDA" oninput="syncAutoNote()">
+            </div>
+            <div class="row">
+                <div class="form-group"><label>股數</label><input type="number" id="stockQty" oninput="calcStockAmount()"></div>
+                <div class="form-group"><label>單價</label><input type="number" id="stockPrice" step="0.01" oninput="calcStockAmount()"></div>
             </div>
         </div>
 
@@ -58,23 +86,6 @@
             </div>
         </div>
 
-        <div id="section-stock" class="dynamic-section">
-            <div class="form-group">
-                <label>選擇股票</label>
-                <select id="stockName" onchange="syncAutoNote()">
-                    <option value="元大台灣50 (0050)">元大台灣50 (0050)</option>
-                    <option value="富邦台50 (006208)">富邦台50 (006208)</option>
-                    <option value="台積電 (2330)">台積電 (2330)</option>
-                    <option value="AVGO">AVGO</option>
-                    <option value="GOOG">GOOG</option>
-                </select>
-            </div>
-            <div class="row">
-                <div class="form-group"><label>股數</label><input type="number" id="stockQty" oninput="syncAutoNote()"></div>
-                <div class="form-group"><label>單價</label><input type="number" id="stockPrice" oninput="syncAutoNote()"></div>
-            </div>
-        </div>
-
         <div id="section-loan" class="dynamic-section">
             <div class="form-group">
                 <label>對象</label>
@@ -83,7 +94,7 @@
                     <option value="淑妍爸爸">淑妍爸爸</option>
                     <option value="張廷碩">張廷碩</option>
                     <option value="施宏沅">施宏沅</option>
-                    <option value="CUSTOM">--- 自定義新增... ---</option>
+                    <option value="CUSTOM">--- 自定義新增對象... ---</option>
                 </select>
             </div>
             <div id="new-target-box" class="form-group" style="display:none;">
@@ -114,7 +125,7 @@
         <hr>
 
         <div class="form-group">
-            <label id="accLabel">來源帳戶</label>
+            <label id="accLabel">支付帳戶</label>
             <div class="row" style="margin-bottom: 8px;">
                 <select id="user" onchange="updateAccountTypes()" style="flex: 0.3;"><option value="彬">彬</option><option value="妍">妍</option></select>
                 <select id="accType" onchange="updateAccountList()" style="flex: 0.7;"></select>
@@ -123,11 +134,13 @@
             <input type="hidden" id="finalAccount" name="entry.2091089311">
         </div>
 
+        <input type="hidden" id="finalStockCode" name="entry.330174012"> 
+
         <div class="form-group"><label>自動備註</label><input type="text" id="note" name="entry.1884550532"></div>
         <div class="form-group"><label>專案 (選填)</label><input type="text" id="project" name="entry.1046613336"></div>
 
         <button type="submit" class="btn">確認送出</button>
-        <div id="status">🚀 已上傳試算表</div>
+        <div id="status">🚀 已成功紀錄至試算表</div>
     </form>
 </div>
 
@@ -159,19 +172,42 @@
         updateMainCategories(); syncAutoNote();
     }
 
-    function checkNewTarget() {
-        const val = document.getElementById('loanTarget').value;
-        document.getElementById('new-target-box').style.display = (val === 'CUSTOM') ? 'block' : 'none';
+    function checkNewStock() {
+        const val = document.getElementById('stockName').value;
+        document.getElementById('new-stock-box').style.display = (val === 'CUSTOM_STOCK') ? 'block' : 'none';
+        syncAutoNote();
+    }
+
+    function calcStockAmount() {
+        const qty = parseFloat(document.getElementById('stockQty').value) || 0;
+        const price = parseFloat(document.getElementById('stockPrice').value) || 0;
+        const total = Math.round(qty * price * 100) / 100;
+        if (total > 0) document.getElementById('amount').value = total;
         syncAutoNote();
     }
 
     function syncAutoNote() {
         const type = document.getElementById('type').value;
         const note = document.getElementById('note');
+        const finalStock = document.getElementById('finalStockCode');
+
         if (type === '股票交易') {
+            let selectElement = document.getElementById('stockName');
+            let code = selectElement.value;
+            let displayName = selectElement.options[selectElement.selectedIndex].text;
+
+            if (code === 'CUSTOM_STOCK') {
+                code = document.getElementById('customStock').value;
+                displayName = code;
+            }
+
+            // 自動判斷台股補前綴：如果是純數字，補上 TPE:
+            let processedCode = /^\d+$/.test(code) ? "TPE:" + code : code;
+            finalStock.value = processedCode;
+
             const qty = document.getElementById('stockQty').value;
             const price = document.getElementById('stockPrice').value;
-            if(qty && price) note.value = `購入 ${document.getElementById('stockName').value} 共 ${qty}股，單價 ${price}`;
+            if(qty && price) note.value = `購入 ${displayName} 共 ${qty}股，單價 ${price} (系統代碼: ${processedCode})`;
         } else if (type === '借貸往來') {
             let target = document.getElementById('loanTarget').value;
             if (target === 'CUSTOM') target = document.getElementById('customTarget').value;
@@ -183,29 +219,35 @@
         } else { note.value = ''; }
     }
 
+    function checkNewTarget() {
+        const val = document.getElementById('loanTarget').value;
+        document.getElementById('new-target-box').style.display = (val === 'CUSTOM') ? 'block' : 'none';
+        syncAutoNote();
+    }
+
+    // 基礎選單與帳戶更新邏輯維持不變
     function updateMainCategories() {
         const type = document.getElementById('type').value;
-        const cat1 = document.getElementById('cat1'); cat1.innerHTML = '';
+        const cat1 = document.getElementById('cat1'); if(!cat1) return;
+        cat1.innerHTML = '';
         const categories = dataConfig[type] || {"項目": ["其它"]};
         Object.keys(categories).forEach(c => { cat1.add(new Option(c, c)); });
         updateSubCategories();
     }
-
     function updateSubCategories() {
         const type = document.getElementById('type').value;
-        const c1 = document.getElementById('cat1').value;
+        const cat1 = document.getElementById('cat1'); if(!cat1) return;
+        const c1 = cat1.value;
         const cat2 = document.getElementById('cat2'); cat2.innerHTML = '';
         const subs = (dataConfig[type] && dataConfig[type][c1]) ? dataConfig[type][c1] : ["N/A"];
         subs.forEach(s => { cat2.add(new Option(s, s)); });
     }
-
     function updateAccountTypes() {
         const user = document.getElementById('user').value;
         const accType = document.getElementById('accType'); accType.innerHTML = '';
         Object.keys(accountData[user]).forEach(t => { accType.add(new Option(t, t)); });
         updateAccountList();
     }
-
     function updateAccountList() {
         const user = document.getElementById('user').value;
         const type = document.getElementById('accType').value;
@@ -213,14 +255,12 @@
         accountData[user][type].forEach(name => { accList.add(new Option(name, name)); });
         syncAccount();
     }
-
     function updateToAccTypes() {
         const user = document.getElementById('toUser').value;
         const accType = document.getElementById('toAccType'); accType.innerHTML = '';
         Object.keys(accountData[user]).forEach(t => { accType.add(new Option(t, t)); });
         updateToAccountList();
     }
-
     function updateToAccountList() {
         const user = document.getElementById('toUser').value;
         const type = document.getElementById('toAccType').value;
@@ -228,7 +268,6 @@
         accountData[user][type].forEach(name => { accList.add(new Option(name, name)); });
         syncAutoNote();
     }
-
     function syncAccount() {
         const u = document.getElementById('user').value;
         const t = document.getElementById('accType').value;
@@ -239,6 +278,7 @@
     document.getElementById('payForm').onsubmit = function(e) {
         e.preventDefault();
         syncAccount();
+        syncAutoNote(); // 確保送出前最新的代碼已寫入 finalStockCode
         fetch("https://docs.google.com/forms/d/e/1FAIpQLSfDgBqRMK5Lm82WAYjIAcSqUxfsDtNN8Ub2W9kUCJc8LrJmQQ/formResponse", { method: 'POST', mode: 'no-cors', body: new FormData(e.target) })
         .then(() => {
             document.getElementById('status').style.display = 'block';
