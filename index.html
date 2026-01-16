@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>深色主題記帳 App</title>
+    <title>蔔蔔記帳</title>
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3616/3616231.png">
     <style>
         :root { --bg: #1a1a1a; --card-bg: #2d2d2d; --text: #e0e0e0; --input-bg: #3d3d3d; --accent: #3498db; --success: #2ecc71; --border: #444; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; justify-content: center; }
         .card { background: var(--card-bg); width: 100%; max-width: 450px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); box-sizing: border-box; }
-        h2 { text-align: center; color: var(--accent); margin: 0 0 20px 0; font-size: 20px; letter-spacing: 1px; }
+        h2 { text-align: center; color: var(--accent); margin: 0 0 20px 0; font-size: 22px; letter-spacing: 2px; font-weight: 800; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; color: #bbb; font-size: 13px; }
         select, input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; background-color: var(--input-bg); color: #fff; -webkit-appearance: none; }
@@ -20,13 +21,12 @@
         #status { text-align: center; margin-top: 15px; font-size: 15px; color: var(--success); display: none; font-weight: bold; padding: 10px; border-radius: 10px; background: rgba(46, 204, 113, 0.1); }
         .dynamic-section { display: none; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent); }
         hr { border: 0; border-top: 1px solid var(--border); margin: 20px 0; }
-        ::placeholder { color: #888; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>💰 DARK WALLET</h2>
+    <h2>🐾 蔔蔔記帳</h2>
     <form id="payForm">
         <div class="row">
             <div class="form-group">
@@ -48,12 +48,12 @@
 
         <div id="section-normal" class="dynamic-section" style="display: block;">
             <div class="row">
-                <div class="form-group">
+                <div class="form-group" id="mainCatGroup">
                     <label>主類別</label>
                     <select id="cat1" name="entry.330174012" onchange="updateSubCategories()"></select>
                 </div>
                 <div class="form-group">
-                    <label>子類別</label>
+                    <label id="subCatLabel">子類別</label>
                     <select id="cat2" name="entry.634254140"></select>
                 </div>
             </div>
@@ -115,7 +115,7 @@
         <hr>
 
         <div class="form-group">
-            <label id="accLabel">支付帳戶 (來源)</label>
+            <label id="accLabel">來源帳戶</label>
             <div class="row" style="margin-bottom: 8px;">
                 <select id="user" onchange="updateAccountTypes()" style="flex: 0.3;"><option value="彬">彬</option><option value="妍">妍</option></select>
                 <select id="accType" onchange="updateAccountList()" style="flex: 0.7;"></select>
@@ -124,11 +124,11 @@
             <input type="hidden" id="finalAccount" name="entry.2091089311">
         </div>
 
-        <div class="form-group"><label>自動備註</label><input type="text" id="note" name="entry.1884550532" placeholder="備註內容"></div>
+        <div class="form-group"><label>自動備註</label><input type="text" id="note" name="entry.1884550532" placeholder="細節描述"></div>
         <div class="form-group"><label>專案 (選填)</label><input type="text" id="project" name="entry.1046613336" placeholder="專案名稱"></div>
 
         <button type="submit" class="btn">確認送出</button>
-        <div id="status">🚀 數據已成功上傳</div>
+        <div id="status">🚀 資料已傳送！</div>
     </form>
 </div>
 
@@ -145,14 +145,20 @@
     function toggleSections() {
         const type = document.getElementById('type').value;
         document.querySelectorAll('.dynamic-section').forEach(s => s.style.display = 'none');
-        if (type === '一般支出' || type === '收入') document.getElementById('section-normal').style.display = 'block';
+        
+        if (type === '一般支出' || type === '收入') {
+            document.getElementById('section-normal').style.display = 'block';
+            // 如果是收入，隱藏主類別
+            document.getElementById('mainCatGroup').style.display = (type === '收入') ? 'none' : 'block';
+            document.getElementById('subCatLabel').innerText = (type === '收入') ? "收入類別" : "子類別";
+        }
         if (type === '股票交易') document.getElementById('section-stock').style.display = 'block';
         if (type === '借貸往來') document.getElementById('section-loan').style.display = 'block';
         if (type === '轉帳' || type === '換匯') {
             document.getElementById('section-transfer').style.display = 'block';
             document.getElementById('exchange-rate-box').style.display = (type === '換匯') ? 'block' : 'none';
         }
-        document.getElementById('accLabel').innerText = (type === '轉帳' || type === '換匯') ? "流出帳戶 (來源)" : "支付帳戶";
+        document.getElementById('accLabel').innerText = (type === '轉帳' || type === '換匯') ? "來源帳戶" : "支付帳戶";
         updateMainCategories(); syncAutoNote();
     }
 
