@@ -5,15 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>快速記帳 App</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f7f6; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .card { background: white; width: 100%; max-width: 400px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--primary); margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 14px; }
-        select, input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; outline: none; background-color: #fff; }
-        .btn { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        #status { text-align: center; margin-top: 15px; font-size: 14px; color: #27ae60; display: none; font-weight: bold; }
+        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f7f6; --success: #27ae60; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .card { background: white; width: 100%; max-width: 450px; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); box-sizing: border-box; }
+        h2 { text-align: center; color: var(--primary); margin: 0 0 20px 0; font-size: 22px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; color: #666; font-size: 13px; }
+        select, input { width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; background-color: #f9f9f9; -webkit-appearance: none; }
+        select:focus, input:focus { border-color: var(--accent); background-color: #fff; }
+        .row { display: flex; gap: 10px; }
+        .row > .form-group { flex: 1; }
+        .btn { width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 15px; }
+        .btn:active { transform: scale(0.97); }
+        #status { text-align: center; margin-top: 15px; font-size: 15px; color: var(--success); display: none; font-weight: bold; padding: 10px; border-radius: 10px; background: #eafaf1; }
+        hr { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
     </style>
 </head>
 <body>
@@ -21,51 +26,51 @@
 <div class="card">
     <h2>💰 快速記帳</h2>
     <form id="payForm">
-        <div class="form-group">
-            <label>交易類型</label>
-            <select id="type" name="entry.1080429568" onchange="updateCategories()">
-                <option value="一般支出">一般支出</option>
-                <option value="收入">收入</option>
-                <option value="股票交易">股票交易</option>
-                <option value="借貸往來">借貸往來</option>
-                <option value="轉帳">轉帳</option>
-                <option value="餘額調整">餘額調整</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>金額</label>
-            <input type="number" id="amount" name="entry.313758906" placeholder="0" required inputmode="decimal">
+        <div class="row">
+            <div class="form-group">
+                <label>交易類型</label>
+                <select id="type" name="entry.1080429568" onchange="updateMainCategories()">
+                    <option value="一般支出">一般支出</option>
+                    <option value="收入">收入</option>
+                    <option value="股票交易">股票交易</option>
+                    <option value="借貸往來">借貸往來</option>
+                    <option value="轉帳">轉帳</option>
+                    <option value="餘額調整">餘額調整</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>金額</label>
+                <input type="number" id="amount" name="entry.313758906" placeholder="0" required inputmode="decimal">
+            </div>
         </div>
 
         <div class="form-group">
             <label>簡述</label>
-            <input type="text" id="note" name="entry.1884550532" placeholder="買了什麼？">
+            <input type="text" id="note" name="entry.1884550532" placeholder="備註...">
         </div>
 
-        <div class="form-group">
-            <label>類別</label>
-            <select id="cat1" name="entry.330174012" onchange="updateSubCategories()"></select>
+        <div class="row">
+            <div class="form-group">
+                <label>主類別</label>
+                <select id="cat1" name="entry.330174012" onchange="updateSubCategories()"></select>
+            </div>
+            <div class="form-group">
+                <label>子類別</label>
+                <select id="cat2" name="entry.634254140"></select>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>子類別</label>
-            <select id="cat2" name="entry.634254140"></select>
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <hr>
 
         <div class="form-group">
-            <label>持有人</label>
-            <select id="user" onchange="updateAccountTypes()">
-                <option value="彬">彬</option>
-                <option value="妍">妍</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>帳戶類型</label>
-            <select id="accType" onchange="updateAccountList()"></select>
+            <label>持有人 / 類型</label>
+            <div class="row">
+                <select id="user" onchange="updateAccountTypes()" style="flex: 0.4;">
+                    <option value="彬">彬</option>
+                    <option value="妍">妍</option>
+                </select>
+                <select id="accType" onchange="updateAccountList()" style="flex: 0.6;"></select>
+            </div>
         </div>
 
         <div class="form-group">
@@ -110,7 +115,7 @@
         }
     };
 
-    function updateCategories() {
+    function updateMainCategories() {
         const type = document.getElementById('type').value;
         const cat1 = document.getElementById('cat1');
         cat1.innerHTML = '';
@@ -161,7 +166,6 @@
         const user = document.getElementById('user').value;
         const type = document.getElementById('accType').value;
         const name = document.getElementById('accList').value;
-        // 組合出跟試算表一模一樣的名稱格式
         document.getElementById('finalAccount').value = `${user} - ${type} - ${name}`;
     }
 
@@ -170,25 +174,18 @@
         const status = document.getElementById('status');
         const form = e.target;
         const url = "https://docs.google.com/forms/d/e/1FAIpQLSfDgBqRMK5Lm82WAYjIAcSqUxfsDtNN8Ub2W9kUCJc8LrJmQQ/formResponse";
-        
-        // 確保發送前帳戶字串是正確的
         syncAccount();
-
-        fetch(url, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: new FormData(form)
-        }).then(() => {
+        fetch(url, { method: 'POST', mode: 'no-cors', body: new FormData(form) })
+        .then(() => {
             status.style.display = 'block';
             form.reset();
-            updateCategories();
+            updateMainCategories();
             updateAccountTypes();
             setTimeout(() => { status.style.display = 'none'; }, 2500);
-        }).catch(err => alert("傳送失敗，請檢查網路！"));
+        });
     };
 
-    // 初始化
-    updateCategories();
+    updateMainCategories();
     updateAccountTypes();
 </script>
 </body>
