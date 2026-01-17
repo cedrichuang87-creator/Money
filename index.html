@@ -6,7 +6,7 @@
     <title>蔔蔔記帳</title>
     <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMWExYTFhIi8+PHBhdGggZD0iTTMwLDUwIEMzMCwzMCA3MCwzMCA3MCw1MCBMNzAsNzAgTDMwLDcwIFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzM0OThkYiIgc3Ryb2tlLXdpZHRoPSI0Ii8+PHBhdGggZD0iTTMwLDUwIEwyNSwzNSBMNDAsNDUgTTcwLDUwIEw3NSwzNSBMNjAsNDUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzM0OThkYiIgc3Ryb2tlLXdpZHRoPSI0Ii8+PC9zdmc+">
     <style>
-        :root { --bg: #1a1a1a; --card-bg: #2d2d2d; --text: #e0e0e0; --input-bg: #3d3d3d; --accent: #3498db; --success: #2ecc71; --border: #444; }
+        :root { --bg: #1a1a1a; --card-bg: #2d2d2d; --text: #e0e0e0; --input-bg: #3d3d3d; --accent: #3498db; --success: #2ecc71; --border: #444; --warning: #f1c40f; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; justify-content: center; }
         .card { background: var(--card-bg); width: 100%; max-width: 450px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); box-sizing: border-box; }
         h2 { text-align: center; color: var(--accent); margin: 0 0 20px 0; font-size: 22px; letter-spacing: 2px; font-weight: 800; }
@@ -20,6 +20,7 @@
         #status { text-align: center; margin-top: 15px; font-size: 15px; color: var(--success); display: none; font-weight: bold; padding: 10px; border-radius: 10px; background: rgba(46, 204, 113, 0.1); }
         .dynamic-section { display: none; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent); }
         hr { border: 0; border-top: 1px solid var(--border); margin: 20px 0; }
+        .info-text { font-size: 12px; color: var(--warning); margin-bottom: 10px; display: block; }
     </style>
 </head>
 <body>
@@ -37,17 +38,18 @@
                     <option value="借貸往來">借貸往來</option>
                     <option value="轉帳">轉帳</option>
                     <option value="換匯">換匯</option>
+                    <option value="餘額調整">餘額調整</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>總金額</label>
+                <label id="amountLabel">總金額</label>
                 <input type="number" id="amount" name="entry.313758906" placeholder="0" required inputmode="decimal">
             </div>
         </div>
 
         <div id="section-stock" class="dynamic-section">
             <div class="form-group">
-                <label>選擇股票 (台股自動補 TPE:)</label>
+                <label>選擇股票</label>
                 <select id="stockName" onchange="checkNewStock()">
                     <optgroup label="台股">
                         <option value="2330">台積電 (2330)</option>
@@ -65,7 +67,7 @@
                 </select>
             </div>
             <div id="new-stock-box" class="form-group" style="display:none;">
-                <input type="text" id="customStock" placeholder="台股輸入 2330 / 美股輸入 NVDA" oninput="syncAutoNote()">
+                <input type="text" id="customStock" placeholder="代碼 (台股補 TPE:)" oninput="syncAutoNote()">
             </div>
             <div class="row">
                 <div class="form-group"><label>股數</label><input type="number" id="stockQty" oninput="calcStockAmount()"></div>
@@ -86,26 +88,11 @@
             </div>
         </div>
 
-        <div id="section-loan" class="dynamic-section">
+        <div id="section-adjust" class="dynamic-section">
+            <span class="info-text">⚠️ 此操作僅用於同步實體帳戶餘額，不計入統計。</span>
             <div class="form-group">
-                <label>對象</label>
-                <select id="loanTarget" onchange="checkNewTarget()">
-                    <option value="台北富邦信貸">台北富邦信貸</option>
-                    <option value="淑妍爸爸">淑妍爸爸</option>
-                    <option value="張廷碩">張廷碩</option>
-                    <option value="施宏沅">施宏沅</option>
-                    <option value="CUSTOM">--- 自定義新增對象... ---</option>
-                </select>
-            </div>
-            <div id="new-target-box" class="form-group" style="display:none;">
-                <input type="text" id="customTarget" placeholder="新對象姓名" oninput="syncAutoNote()">
-            </div>
-            <div class="form-group">
-                <label>性質</label>
-                <select id="loanType" onchange="syncAutoNote()">
-                    <option value="借入">借入</option><option value="借出">借出</option>
-                    <option value="還款">還款</option><option value="收款">收款</option>
-                </select>
+                <label>調整原因</label>
+                <input type="text" id="adjustReason" placeholder="例如：手續費漏記、雜費校正" oninput="syncAutoNote()">
             </div>
         </div>
 
@@ -116,10 +103,6 @@
                 <select id="toAccType" onchange="updateToAccList()" style="flex:0.7;"></select>
             </div>
             <select id="toAccList" onchange="syncAutoNote()" style="margin-top:10px;"></select>
-            <div id="exchange-rate-box" style="display:none; margin-top:10px;">
-                <label>匯率 (1 外幣 = ? 台幣)</label>
-                <input type="number" id="exRate" placeholder="例如 31.5" step="0.0001" oninput="syncAutoNote()">
-            </div>
         </div>
 
         <hr>
@@ -140,7 +123,7 @@
         <div class="form-group"><label>專案 (選填)</label><input type="text" id="project" name="entry.1046613336"></div>
 
         <button type="submit" class="btn">確認送出</button>
-        <div id="status">🚀 已成功紀錄至試算表</div>
+        <div id="status">🚀 已上傳至試算表</div>
     </form>
 </div>
 
@@ -157,18 +140,22 @@
     function toggleSections() {
         const type = document.getElementById('type').value;
         document.querySelectorAll('.dynamic-section').forEach(s => s.style.display = 'none');
+        
         if (type === '一般支出' || type === '收入') {
             document.getElementById('section-normal').style.display = 'block';
             document.getElementById('mainCatGroup').style.display = (type === '收入') ? 'none' : 'block';
             document.getElementById('subCatLabel').innerText = (type === '收入') ? "收入來源" : "子類別";
-        }
-        if (type === '股票交易') document.getElementById('section-stock').style.display = 'block';
-        if (type === '借貸往來') document.getElementById('section-loan').style.display = 'block';
-        if (type === '轉帳' || type === '換匯') {
+        } else if (type === '股票交易') {
+            document.getElementById('section-stock').style.display = 'block';
+        } else if (type === '餘額調整') {
+            document.getElementById('section-adjust').style.display = 'block';
+        } else if (type === '轉帳' || type === '換匯') {
             document.getElementById('section-transfer').style.display = 'block';
-            document.getElementById('exchange-rate-box').style.display = (type === '換匯') ? 'block' : 'none';
         }
-        document.getElementById('accLabel').innerText = (type === '轉帳' || type === '換匯') ? "來源帳戶" : "支付帳戶";
+        
+        document.getElementById('accLabel').innerText = (type === '轉帳' || type === '換匯') ? "來源帳戶" : "調整/支付帳戶";
+        document.getElementById('amountLabel').innerText = (type === '餘額調整') ? "正確餘額" : "總金額";
+        
         updateMainCategories(); syncAutoNote();
     }
 
@@ -192,40 +179,23 @@
         const finalStock = document.getElementById('finalStockCode');
 
         if (type === '股票交易') {
-            let selectElement = document.getElementById('stockName');
-            let code = selectElement.value;
-            let displayName = selectElement.options[selectElement.selectedIndex].text;
-
-            if (code === 'CUSTOM_STOCK') {
-                code = document.getElementById('customStock').value;
-                displayName = code;
-            }
-
-            // 自動判斷台股補前綴：如果是純數字，補上 TPE:
+            let select = document.getElementById('stockName');
+            let code = select.value === 'CUSTOM_STOCK' ? document.getElementById('customStock').value : select.value;
             let processedCode = /^\d+$/.test(code) ? "TPE:" + code : code;
             finalStock.value = processedCode;
-
-            const qty = document.getElementById('stockQty').value;
-            const price = document.getElementById('stockPrice').value;
-            if(qty && price) note.value = `購入 ${displayName} 共 ${qty}股，單價 ${price} (系統代碼: ${processedCode})`;
-        } else if (type === '借貸往來') {
-            let target = document.getElementById('loanTarget').value;
-            if (target === 'CUSTOM') target = document.getElementById('customTarget').value;
-            note.value = `[${document.getElementById('loanType').value}] 對象: ${target}`;
+            note.value = `購入 ${processedCode} 共 ${document.getElementById('stockQty').value}股`;
+        } else if (type === '餘額調整') {
+            note.value = `[餘額校正] ${document.getElementById('adjustReason').value}`;
+            finalStock.value = "系統調整";
         } else if (type === '轉帳' || type === '換匯') {
-            let str = `轉入至 ${document.getElementById('toUser').value} - ${document.getElementById('toAccList').value}`;
-            if(type === '換匯' && document.getElementById('exRate').value) str += ` (匯率: ${document.getElementById('exRate').value})`;
-            note.value = str;
-        } else { note.value = ''; }
+            note.value = `轉入至 ${document.getElementById('toUser').value} - ${document.getElementById('toAccList').value}`;
+            finalStock.value = "內部轉帳";
+        } else {
+            note.value = '';
+            finalStock.value = "";
+        }
     }
 
-    function checkNewTarget() {
-        const val = document.getElementById('loanTarget').value;
-        document.getElementById('new-target-box').style.display = (val === 'CUSTOM') ? 'block' : 'none';
-        syncAutoNote();
-    }
-
-    // 基礎選單與帳戶更新邏輯維持不變
     function updateMainCategories() {
         const type = document.getElementById('type').value;
         const cat1 = document.getElementById('cat1'); if(!cat1) return;
@@ -234,6 +204,7 @@
         Object.keys(categories).forEach(c => { cat1.add(new Option(c, c)); });
         updateSubCategories();
     }
+
     function updateSubCategories() {
         const type = document.getElementById('type').value;
         const cat1 = document.getElementById('cat1'); if(!cat1) return;
@@ -242,12 +213,14 @@
         const subs = (dataConfig[type] && dataConfig[type][c1]) ? dataConfig[type][c1] : ["N/A"];
         subs.forEach(s => { cat2.add(new Option(s, s)); });
     }
+
     function updateAccountTypes() {
         const user = document.getElementById('user').value;
         const accType = document.getElementById('accType'); accType.innerHTML = '';
         Object.keys(accountData[user]).forEach(t => { accType.add(new Option(t, t)); });
         updateAccountList();
     }
+
     function updateAccountList() {
         const user = document.getElementById('user').value;
         const type = document.getElementById('accType').value;
@@ -255,12 +228,14 @@
         accountData[user][type].forEach(name => { accList.add(new Option(name, name)); });
         syncAccount();
     }
+
     function updateToAccTypes() {
         const user = document.getElementById('toUser').value;
         const accType = document.getElementById('toAccType'); accType.innerHTML = '';
         Object.keys(accountData[user]).forEach(t => { accType.add(new Option(t, t)); });
         updateToAccountList();
     }
+
     function updateToAccountList() {
         const user = document.getElementById('toUser').value;
         const type = document.getElementById('toAccType').value;
@@ -268,6 +243,7 @@
         accountData[user][type].forEach(name => { accList.add(new Option(name, name)); });
         syncAutoNote();
     }
+
     function syncAccount() {
         const u = document.getElementById('user').value;
         const t = document.getElementById('accType').value;
@@ -278,7 +254,7 @@
     document.getElementById('payForm').onsubmit = function(e) {
         e.preventDefault();
         syncAccount();
-        syncAutoNote(); // 確保送出前最新的代碼已寫入 finalStockCode
+        syncAutoNote();
         fetch("https://docs.google.com/forms/d/e/1FAIpQLSfDgBqRMK5Lm82WAYjIAcSqUxfsDtNN8Ub2W9kUCJc8LrJmQQ/formResponse", { method: 'POST', mode: 'no-cors', body: new FormData(e.target) })
         .then(() => {
             document.getElementById('status').style.display = 'block';
